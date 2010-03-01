@@ -9,8 +9,10 @@ function GeePee() {
   this._set_class_constants();
   this._generate_inputs();
   this._create_random_pop();
+  this.evolve();
+
+  //this._test_mutate();
   console.log(this._calc_avg_indiv_len());
-  //this._test_program();
 }
 
 // TODO: remove.
@@ -26,6 +28,20 @@ GeePee.prototype._test_program = function() {
   console.log(this._calculate_fitness( [111, 31, 110, 112, 100, 69, 76] ));
 }
 
+GeePee.prototype._test_crossover = function() {
+  var p1 = [112, 111, 31, 47, 110, 39, 52], p2 = [111, 31, 110, 112, 100, 69, 76];
+  var off = this._crossover(p1, p2);
+  for(var i = 0; i < off.length; i++)
+    console.log(off[i]);
+}
+
+GeePee.prototype._test_mutate = function() {
+  var p = [112, 111, 31, 47, 110, 39, 52];
+  var m = this._mutate(p);
+  for(var i = 0; i < m.length; i++)
+    console.log(m[i]);
+}
+
 GeePee.prototype._set_class_constants = function() {
   this._OPS = {
     ADD: 110,
@@ -37,8 +53,13 @@ GeePee.prototype._set_class_constants = function() {
   this._OPS_END   = this._OPS.DIV;
 
   this._MAX_INDIV_SIZE = 1e4;
-  this._POP_SIZE       = 1e3;
+  this._POP_SIZE       = 1e2;
   this._MAX_DEPTH      = 5;
+  this._GENERATIONS    = 1e2;
+
+  this._CROSSOVER_PROB       = 0.9;
+  this._PERMUT_PROB_PER_NODE = 0.05;
+  this._TOURNAMENT_SIZE      = 2;
 
   this._NUM_VARIABLES = 1;
 
@@ -71,11 +92,12 @@ GeePee.prototype._generate_inputs = function() {
 }
 
 GeePee.prototype._create_random_pop = function() {
-  this._pop = new Array(this._POP_SIZE);
+  this._pop       = new Array(this._POP_SIZE);
+  this._fitnesses = new Array(this._POP_SIZE);
+
   for(var i = 0; i < this._pop.length; i++) {
-    this._pop[i] = this._create_random_indiv();
-    //console.log(this._pop[i]);
-    //console.log(this._calculate_fitness(this._pop[i]));
+    this._pop[i]       = this._create_random_indiv();
+    this._fitnesses[i] = this._calculate_fitness(this._pop[i]);
   }
 }
 
@@ -100,15 +122,12 @@ GeePee.prototype._grow_indiv = function(indiv, depth) {
   else if(depth === 0)   var choose_op = false;
   else                   var choose_op = Util.random_bool();
 
-  if(!choose_op) { // Choose value.
-    // Value will be constant or variable.
-    var value = Util.random_int(0, this._INPUTS_LEN - 1);
-    indiv.push(value);
+  if(!choose_op) { // Choose input.
+    // Input will be constant or variable.
+    indiv.push(this._generate_input());
     return;
   } else {         // Choose operator.
-    var op = Util.random_int(this._OPS_START, this._OPS_END);
-    indiv.push(op);
-
+    indiv.push(this._generate_op());
     // Add two more primitives (i.e., two ops or values) so that op has something to operate on.
     // Note all our operators have an arity of two.
     for(var i = 0; i < 2; i++)
@@ -117,6 +136,12 @@ GeePee.prototype._grow_indiv = function(indiv, depth) {
   }
 }
 
+// Ideally, we'd calculate the fitness as the absolute value of the definite integral of
+// (f(x) = target_f(x) - evolved_f(x)), but doing so is enormously difficult. Instead, we calculate
+// the sum of errors between target_f(x) and evolved_f(x) for a given set of x-values.
+//
+// In order to preserve expectation that larger fitness values indicate more fit functions, we
+// return the *negative* sum of errors.
 GeePee.prototype._calculate_fitness = function(indiv) {
   var fit = 0;
   for(var x = this._TARGET_INPUT_START; x <= this._TARGET_INPUT_END; x += this._TARGET_INPUT_STEP) {
@@ -126,7 +151,23 @@ GeePee.prototype._calculate_fitness = function(indiv) {
     var result = this._run_indiv(indiv);
     fit += Math.abs(result - target);
   }
-  return fit;
+  return -fit;
+}
+
+GeePee.prototype._is_op = function(primitive) {
+  return primitive >= this._INPUTS_LEN;
+}
+
+GeePee.prototype._is_input = function(primitive) {
+  return !this._is_op(primitive);
+}
+
+GeePee.prototype._generate_op = function() {
+  return Util.random_int(this._OPS_START, this._OPS_END);
+}
+
+GeePee.prototype._generate_input = function() {
+  return Util.random_int(0, this._INPUTS_LEN - 1);
 }
 
 GeePee.prototype._run_indiv = function(indiv) {
@@ -136,8 +177,7 @@ GeePee.prototype._run_indiv = function(indiv) {
   // retrieve value for c.
   var primitive = indiv[this._pc++];
 
- // primitive is below ops, so must be an input.
-  if(primitive < this._INPUTS_LEN)
+  if(this._is_input(primitive))
     return this._inputs[primitive];
 
   // primitive is an op, so evaluate the next two instructions as its parameters.
@@ -152,6 +192,111 @@ GeePee.prototype._run_indiv = function(indiv) {
     default:
       throw "Unknown primitive: " + primitive;
   }
+}
+
+GeePee.prototype._positive_tournament = function() {
+  var best = 0;
+  var best_fitness = -Number.MAX_VALUE;
+
+  for(var i = 0; i < this._TOURNAMENT_SIZE; i++) {
+    competitor = Util.random_int(0, this._pop.length);
+    if(this._fitnesses[competitor] > best_fitness) {
+      best = competitor;
+      best_fitness = this._fitnesses[best];
+    }
+  }
+
+  return this._pop[best];
+}
+
+GeePee.prototype._negative_tournament = function() {
+  var worst = 0;
+  var worst_fitness = -Number.MAX_VALUE;
+
+  for(var i = 0; i < this._TOURNAMENT_SIZE; i++) {
+    competitor = Util.random_int(0, this._pop.length);
+    if(this._fitnesses[competitor] < worst_fitness) {
+      worst = competitor;
+      worst_fitness = this._fitnesses[worst];
+    }
+  }
+
+  return this._pop[worst];
+}
+
+GeePee.prototype._calc_subtree_length = function(indiv, idx) {
+  if(this._is_input(indiv[idx]))
+    return ++idx;
+  return this._calc_subtree_length(indiv, this._calc_subtree_length(indiv, ++idx));
+}
+
+// Returns offspring generated from combination of two parents. Note that neither parent1 nor
+// parent2 are affected by this operation. Crossover is performed by replacing a random node of
+// parent1 with a randomly-chosen subtree of parent2.
+GeePee.prototype._crossover = function(parent1, parent2) {
+  // To create offspring, tree at xo1 node in parent1 will be replaced by tree at xo2 node from parent2.
+  var xo1_start = Util.random_int(0, parent1.length - 1);
+  var xo1_end   = this._calc_subtree_length(parent1, xo1_start);
+  var xo2_start = Util.random_int(0, parent2.length - 1);
+  var xo2_end   = this._calc_subtree_length(parent2, xo2_start);
+
+  var a = parent1.slice(0, xo1_start);       // From start of parent1 to just before node to be replaced.
+  var b = parent2.slice(xo2_start, xo2_end); // From start of parent2's replacement node to its end.
+  var c = parent1.slice(xo1_end);            // From just after replaced node to end of parent1.
+  return a.concat(b, c);
+}
+
+GeePee.prototype._mutate = function(parent) {
+  var mutated = parent.slice(0); // Make copy so parent unchanged.
+  for(var i = 0; i < mutated.length; i++) {
+    if(Math.random() >= this._PERMIT_PROB_PER_NODE)
+      continue; // Don't mutate this node.
+    mutated[i] = this._is_op(mutated[i]) ? this._generate_op() : this._generate_input();
+  }
+  return mutated;
+}
+
+GeePee.prototype._evolve_new_indiv = function() {
+  if(Math.random() < this._CROSSOVER_PROB) {   // Generate new_indiv via crossover.
+    var parent1 = this._positive_tournament();
+    var parent2 = this._positive_tournament();
+    return this._crossover(parent1, parent2);
+  } else {                                     // Generate new_indiv via mutation.
+    var parent = this._positive_tournament();
+    return this._mutate(parent);
+  }
+}
+
+GeePee.prototype.evolve = function() {
+  for(var gen = 1; gen <= this._GENERATIONS; gen++) {
+    for(var indiv = 0; indiv < this._POP_SIZE; indiv++) {
+      var new_indiv = this._evolve_new_indiv();
+      var new_fit = this._calculate_fitness(new_indiv);
+
+      var out_of_the_pool = this._negative_tournament();
+      this._pop[out_of_the_pool] = new_indiv;
+      this._fitnesses[out_of_the_pool] = new_fit;
+    }
+    console.log('Generation ' + gen);
+  }
+  this._find_best_indiv();
+}
+
+GeePee.prototype._find_best_indiv = function() {
+  var best;
+  var best_fitness = -Number.MAX_VALUE;
+
+  for(var i = 0; i < this._pop.length; i++) {
+    if(this._fitnesses[i] > best_fitness) {
+      best = i;
+      best_fitness = this._fitnesses[i];
+    }
+  }
+
+  for(var i = 0; i < this._pop.length; i++)
+    console.log([i, this._fitnesses[i]]);
+  console.log([best, best_fitness]);
+  return this._pop[best];
 }
 
 
