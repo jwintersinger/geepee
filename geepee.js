@@ -1,7 +1,3 @@
-function init() {
-  new GeePee();
-}
-window.addEventListener('load', init, false);
 
 
 
@@ -53,9 +49,9 @@ GeePee.prototype._set_class_constants = function() {
   this._OPS_END   = this._OPS.DIV;
 
   this._MAX_INDIV_SIZE    = 1e4;
-  this._POP_SIZE          = 1e3;
+  this._POP_SIZE          = 1e5;
   this._MAX_INITIAL_DEPTH = 5;
-  this._GENERATIONS       = 30;
+  this._GENERATIONS       = 1e2;
 
   this._CROSSOVER_PROB       = 0.9;
   this._PERMUT_PROB_PER_NODE = 0.05;
@@ -185,7 +181,7 @@ GeePee.prototype._is_op = function(primitive) {
 }
 
 GeePee.prototype._is_input = function(primitive) {
-  return !this._is_op(primitive);
+  return primitive < this._INPUTS_LEN;
 }
 
 GeePee.prototype._generate_op = function() {
@@ -322,4 +318,22 @@ Util = {
   random_bool: function() {
     return Util.random_int(0, 1) === 1;
   }
+}
+
+
+
+if(typeof window !== 'undefined') {
+  window.addEventListener('load', function() {
+    document.getElementById('go').addEventListener('click', init, false);
+  }, false);
+} else {
+  init();
+}
+
+function init() {
+  if(typeof console === 'undefined')
+    console = { log: function() {} };
+  console.log(this);
+  var gp = new GeePee();
+  gp.evolve();
 }
