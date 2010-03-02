@@ -11,8 +11,7 @@ function GeePee() {
   this._create_random_pop();
   this.evolve();
 
-  //this._test_mutate();
-  console.log(this._calc_avg_indiv_len());
+  //this._test_crossover();
 }
 
 // TODO: remove.
@@ -30,9 +29,10 @@ GeePee.prototype._test_program = function() {
 
 GeePee.prototype._test_crossover = function() {
   var p1 = [112, 111, 31, 47, 110, 39, 52], p2 = [111, 31, 110, 112, 100, 69, 76];
+  p1 =  [112, 111, 31, 47, 110, 39, 111, 31, 110, 112, 100, 69, 76];
+  p2 =  [112, 111, 31, 47, 110, 39, 111, 31, 110, 112, 100, 69, 76];
   var off = this._crossover(p1, p2);
-  for(var i = 0; i < off.length; i++)
-    console.log(off[i]);
+  console.log(off);
 }
 
 GeePee.prototype._test_mutate = function() {
@@ -52,10 +52,10 @@ GeePee.prototype._set_class_constants = function() {
   this._OPS_START = this._OPS.ADD;
   this._OPS_END   = this._OPS.DIV;
 
-  this._MAX_INDIV_SIZE = 1e4;
-  this._POP_SIZE       = 1e2;
-  this._MAX_DEPTH      = 5;
-  this._GENERATIONS    = 1e2;
+  this._MAX_INDIV_SIZE    = 1e4;
+  this._POP_SIZE          = 1e3;
+  this._MAX_INITIAL_DEPTH = 5;
+  this._GENERATIONS       = 30;
 
   this._CROSSOVER_PROB       = 0.9;
   this._PERMUT_PROB_PER_NODE = 0.05;
@@ -66,6 +66,9 @@ GeePee.prototype._set_class_constants = function() {
   this._NUM_CONSTANTS = 1e2;
   this._CONSTANT_MIN  = -5;
   this._CONSTANT_MAX   = 5;
+
+  this._BEST_POSSIBLE_FITNESS  = 0;
+  this._WORST_POSSIBLE_FITNESS = Number.MAX_VALUE;
 
   this._TARGET_INPUT_START = 0;
   this._TARGET_INPUT_END   = 2*Math.PI;
@@ -101,16 +104,39 @@ GeePee.prototype._create_random_pop = function() {
   }
 }
 
-GeePee.prototype._calc_avg_indiv_len = function() {
-  var avg_len = 0;
-  for(var i = 0; i < this._pop.length; i++)
-    avg_len += this._pop[i].length;
-  return avg_len / this._pop.length;
+GeePee.prototype._print_stats = function(generation) {
+  var len_sum     = 0; // Summed lengths of all individuals
+  var fitness_sum = 0;
+  var best, best_fitness = this._WORST_POSSIBLE_FITNESS;
+  var worst, worst_fitness = this._BEST_POSSIBLE_FITNESS;
+  var pop_size = this._pop.length;
+
+  for(var i = 0; i < pop_size; i++) {
+    len_sum     += this._pop[i].length;
+    fitness_sum += this._fitnesses[i];
+
+    if(this._fitnesses[i] < best_fitness) {
+      best = i;
+      best_fitness = this._fitnesses[best];
+    }
+    if(this._fitnesses[i] > worst_fitness) {
+      worst = i;
+      worst_fitness = this._fitnesses[worst];
+    }
+  }
+
+  console.log(
+    'gen='   + generation +
+    ' best_fit=' + best_fitness +
+    ' worst_fit=' + worst_fitness +
+    ' avg_fit='  + fitness_sum/pop_size +
+    ' avg_len='  + len_sum/pop_size
+  );
 }
 
 GeePee.prototype._create_random_indiv = function() {
   var indiv = [];
-  this._grow_indiv(indiv, this._MAX_DEPTH);
+  this._grow_indiv(indiv, this._MAX_INITIAL_DEPTH);
   return indiv;
 }
 
@@ -151,7 +177,7 @@ GeePee.prototype._calculate_fitness = function(indiv) {
     var result = this._run_indiv(indiv);
     fit += Math.abs(result - target);
   }
-  return -fit;
+  return fit;
 }
 
 GeePee.prototype._is_op = function(primitive) {
@@ -195,33 +221,31 @@ GeePee.prototype._run_indiv = function(indiv) {
 }
 
 GeePee.prototype._positive_tournament = function() {
-  var best = 0;
-  var best_fitness = -Number.MAX_VALUE;
+  var best, best_fitness = this._WORST_POSSIBLE_FITNESS;
 
   for(var i = 0; i < this._TOURNAMENT_SIZE; i++) {
-    competitor = Util.random_int(0, this._pop.length);
-    if(this._fitnesses[competitor] > best_fitness) {
+    var competitor = Util.random_int(0, this._pop.length - 1);
+    if(this._fitnesses[competitor] < best_fitness) {
       best = competitor;
       best_fitness = this._fitnesses[best];
     }
   }
 
-  return this._pop[best];
+  return best;
 }
 
 GeePee.prototype._negative_tournament = function() {
-  var worst = 0;
-  var worst_fitness = -Number.MAX_VALUE;
+  var worst, worst_fitness = this._BEST_POSSIBLE_FITNESS;
 
   for(var i = 0; i < this._TOURNAMENT_SIZE; i++) {
-    competitor = Util.random_int(0, this._pop.length);
-    if(this._fitnesses[competitor] < worst_fitness) {
+    var competitor = Util.random_int(0, this._pop.length - 1);
+    if(this._fitnesses[competitor] > worst_fitness) {
       worst = competitor;
       worst_fitness = this._fitnesses[worst];
     }
   }
 
-  return this._pop[worst];
+  return worst;
 }
 
 GeePee.prototype._calc_subtree_length = function(indiv, idx) {
@@ -243,7 +267,9 @@ GeePee.prototype._crossover = function(parent1, parent2) {
   var a = parent1.slice(0, xo1_start);       // From start of parent1 to just before node to be replaced.
   var b = parent2.slice(xo2_start, xo2_end); // From start of parent2's replacement node to its end.
   var c = parent1.slice(xo1_end);            // From just after replaced node to end of parent1.
-  return a.concat(b, c);
+  var ret = a.concat(b, c);
+  //console.log([parent1.length, parent2.length, ret.length]);
+  return ret;
 }
 
 GeePee.prototype._mutate = function(parent) {
@@ -260,10 +286,10 @@ GeePee.prototype._evolve_new_indiv = function() {
   if(Math.random() < this._CROSSOVER_PROB) {   // Generate new_indiv via crossover.
     var parent1 = this._positive_tournament();
     var parent2 = this._positive_tournament();
-    return this._crossover(parent1, parent2);
+    return this._crossover(this._pop[parent1], this._pop[parent2]);
   } else {                                     // Generate new_indiv via mutation.
     var parent = this._positive_tournament();
-    return this._mutate(parent);
+    return this._mutate(this._pop[parent]);
   }
 }
 
@@ -277,26 +303,8 @@ GeePee.prototype.evolve = function() {
       this._pop[out_of_the_pool] = new_indiv;
       this._fitnesses[out_of_the_pool] = new_fit;
     }
-    console.log('Generation ' + gen);
+    this._print_stats(gen);
   }
-  this._find_best_indiv();
-}
-
-GeePee.prototype._find_best_indiv = function() {
-  var best;
-  var best_fitness = -Number.MAX_VALUE;
-
-  for(var i = 0; i < this._pop.length; i++) {
-    if(this._fitnesses[i] > best_fitness) {
-      best = i;
-      best_fitness = this._fitnesses[i];
-    }
-  }
-
-  for(var i = 0; i < this._pop.length; i++)
-    console.log([i, this._fitnesses[i]]);
-  console.log([best, best_fitness]);
-  return this._pop[best];
 }
 
 
