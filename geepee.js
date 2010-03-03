@@ -409,11 +409,16 @@ Grapher.prototype.graph_multiple = function(functions, x_min, x_max) {
   var y_min = Util.least(minima);
   var y_max = Util.greatest(maxima);
 
+  this._clear(); // Clear any previously drawn graphs.
   this._draw_axes(x_min, x_max, y_min, y_max);
 
   for(var i = 0; i < y_values.length; i++) {
     this._draw_graph(y_values[i], y_min, y_max);
   }
+}
+
+Grapher.prototype._clear = function() {
+  this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
 }
 
 
@@ -453,8 +458,8 @@ function init() {
   var grapher = new Grapher('graph');
   var f = function(x) { return Math.pow(x, 2); };
   f = function(x) { return Math.sin(x); };
-  //grapher.graph(f, -Math.PI, Math.PI);
-  grapher.graph_multiple([f, function(x) { return Math.pow(x, 2); }], 0, Math.PI);
+  grapher.graph(f, -Math.PI, Math.PI);
+  grapher.graph_multiple([f, function(x) { return Math.pow(x, 2); }], 0, 2*Math.PI);
   return;
 
   if(typeof console === 'undefined')
