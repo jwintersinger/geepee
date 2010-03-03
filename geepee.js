@@ -1,6 +1,3 @@
-
-
-
 function GeePee() {
   this._set_class_constants();
   this._generate_inputs();
@@ -49,7 +46,7 @@ GeePee.prototype._set_class_constants = function() {
   this._OPS_END   = this._OPS.DIV;
 
   this._MAX_INDIV_SIZE    = 1e4;
-  this._POP_SIZE          = 1e5;
+  this._POP_SIZE          = 1e3;
   this._MAX_INITIAL_DEPTH = 5;
   this._GENERATIONS       = 1e2;
 
@@ -103,8 +100,8 @@ GeePee.prototype._create_random_pop = function() {
 GeePee.prototype._print_stats = function(generation) {
   var len_sum     = 0; // Summed lengths of all individuals
   var fitness_sum = 0;
-  var best, best_fitness = this._WORST_POSSIBLE_FITNESS;
-  var worst, worst_fitness = this._BEST_POSSIBLE_FITNESS;
+  var best, best_size, best_fitness = this._WORST_POSSIBLE_FITNESS;
+  var worst, worst_size, worst_fitness = this._BEST_POSSIBLE_FITNESS;
   var pop_size = this._pop.length;
 
   for(var i = 0; i < pop_size; i++) {
@@ -113,20 +110,24 @@ GeePee.prototype._print_stats = function(generation) {
 
     if(this._fitnesses[i] < best_fitness) {
       best = i;
+      best_size = this._pop[best].length;
       best_fitness = this._fitnesses[best];
     }
     if(this._fitnesses[i] > worst_fitness) {
       worst = i;
+      worst_size = this._pop[worst].length;
       worst_fitness = this._fitnesses[worst];
     }
   }
 
   console.log(
     'gen='   + generation +
-    ' best_fit=' + best_fitness +
-    ' worst_fit=' + worst_fitness +
-    ' avg_fit='  + fitness_sum/pop_size +
-    ' avg_len='  + len_sum/pop_size
+    ' best_fit='   + best_fitness.toFixed(2) +
+    ' best_size='  + best_size +
+    ' worst_fit='  + worst_fitness.toFixed(2) +
+    ' worst_size=' + worst_size +
+    ' avg_fit='    + (fitness_sum/pop_size).toFixed(2) +
+    ' avg_len='    + (len_sum/pop_size).toFixed(2)
   );
 }
 
@@ -305,6 +306,106 @@ GeePee.prototype.evolve = function() {
 
 
 
+Grapher = function(graph_id) {
+  this._canvas = document.getElementById(graph_id);
+  this._ctx = this._canvas.getContext('2d');
+  this._line_width = 2;
+
+  //this._ctx.translate(0, this._canvas.height/2);
+  return;
+
+  this._ctx.beginPath();
+  this._ctx.arc(0, 0, 1, 0, 2*Math.PI, false);
+  this._ctx.fill();
+}
+
+// Remember, unless y_min < 0 && y_max > 0, x-axis won't be visible; similar holds true for y-axis.
+Grapher.prototype._draw_axes = function(x_min, x_max, y_min, y_max) {
+  this._ctx.save();
+  this._ctx.beginPath();
+
+  // x axis
+  var pixel_y = this._graph_to_screen_y(0, y_min, y_max);
+  this._ctx.moveTo(0, pixel_y);
+  this._ctx.lineTo(this._canvas.width, pixel_y);
+
+  // y axis
+  var pixel_x = this._graph_to_screen_x(0, x_min, x_max);
+  this._ctx.moveTo(pixel_x, 0);
+  this._ctx.lineTo(pixel_x, this._canvas.height);
+
+  this._ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+  this._ctx.stroke();
+  this._ctx.restore();
+}
+
+// Convert from screen units to graph units for x.
+Grapher.prototype._graph_to_screen_x = function(x, x_min, x_max) {
+  // Ensure half of line is not cut off at extreme left/right of graph.
+  var canvas_width = this._canvas.width - this._line_width;
+  var ratio = canvas_width / (x_max - x_min);
+  var pixel_x = ratio*(x - x_min);
+  // Translate graph down by half of line width to complete correction that ensures half of line is
+  // not cut off.
+  pixel_x += this._line_width/2;
+  return pixel_x;
+}
+
+// Convert from graph units to screen units for y.
+Grapher.prototype._graph_to_screen_y = function(y, y_min, y_max) {
+  // Ensure half of line is not cut off at extreme top/bottom of graph.
+  var canvas_height = this._canvas.height - this._line_width;
+  var ratio = canvas_height / (y_max - y_min);
+  var pixel_y = ratio*(y - y_min);
+  // Reflect graph vertically, since canvas' y-coordinates increase as one moves down, while on the
+  // graph they increase as one moves up.
+  pixel_y = canvas_height - pixel_y;
+  // Translate graph down by half of line width to complete correction that ensures half of line is
+  // not cut off.
+  pixel_y += this._line_width/2;
+  return pixel_y;
+}
+
+Grapher.prototype._screen_to_graph_x = function(pixel_x, x_min, x_max) {
+  return (pixel_x / this._canvas.width)*(x_max - x_min) + x_min;
+}
+
+Grapher.prototype._evaluate = function(f, x_min, x_max) {
+  var y_values = new Array(this._canvas.width);
+  for(var pixel_x = 0; pixel_x < y_values.length; pixel_x++) {
+    var graph_x = this._screen_to_graph_x(pixel_x, x_min, x_max);
+    y_values[pixel_x] = f(graph_x);
+  }
+  return y_values;
+}
+
+Grapher.prototype._find_extrema = function(points) {
+  var min = points.reduce(function(previous, current, index, array) {
+    return current < previous ? current : previous;
+  });
+  var max = points.reduce(function(previous, current, index, array) {
+    return current > previous ? current : previous;
+  });
+  return { min: min, max: max};
+}
+
+Grapher.prototype.graph = function(f, x_min, x_max) {
+  var y_values = this._evaluate(f, x_min, x_max);
+  var extrema = this._find_extrema(y_values);
+  var y_min = extrema.min, y_max = extrema.max;
+
+  this._draw_axes(x_min, x_max, y_min, y_max);
+
+  for(var pixel_x = 0; pixel_x < y_values.length; pixel_x++) {
+    var pixel_y = this._graph_to_screen_y(y_values[pixel_x], y_min, y_max);
+    this._ctx.beginPath();
+    this._ctx.arc(pixel_x, pixel_y, this._line_width/2, 0, 2*Math.PI, false);
+    this._ctx.fill();
+  }
+}
+
+
+
 Util = {
   // Returns random integer in range [min, max].
   random_int: function(min, max) {
@@ -322,18 +423,31 @@ Util = {
 
 
 
-if(typeof window !== 'undefined') {
-  window.addEventListener('load', function() {
-    document.getElementById('go').addEventListener('click', init, false);
-  }, false);
-} else {
-  init();
-}
-
 function init() {
+  var grapher = new Grapher('graph');
+  var f = function(x) { return Math.pow(x, 2); };
+  f = function(x) { return Math.sin(x); };
+  grapher.graph(f, -Math.PI, Math.PI);
+  return;
+
   if(typeof console === 'undefined')
-    console = { log: function() {} };
-  console.log(this);
+    console = {
+      log: function(msg) {
+        postMessage(msg);
+      }
+    };
+
   var gp = new GeePee();
   gp.evolve();
 }
+
+if(typeof window !== 'undefined') {
+  window.addEventListener('load', function() {
+    document.getElementById('go').addEventListener('click', init, false);
+    init();
+  }, false);
+} else {
+  console.log('whoa');
+  init();
+}
+
