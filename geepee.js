@@ -380,27 +380,39 @@ Grapher.prototype._evaluate = function(f, x_min, x_max) {
 }
 
 Grapher.prototype._find_extrema = function(points) {
-  var min = points.reduce(function(previous, current, index, array) {
-    return current < previous ? current : previous;
-  });
-  var max = points.reduce(function(previous, current, index, array) {
-    return current > previous ? current : previous;
-  });
-  return { min: min, max: max};
+  return { min: Util.least(points), max: Util.greatest(points) };
 }
 
-Grapher.prototype.graph = function(f, x_min, x_max) {
-  var y_values = this._evaluate(f, x_min, x_max);
-  var extrema = this._find_extrema(y_values);
-  var y_min = extrema.min, y_max = extrema.max;
 
-  this._draw_axes(x_min, x_max, y_min, y_max);
-
+Grapher.prototype._draw_graph = function(y_values, y_min, y_max) {
   for(var pixel_x = 0; pixel_x < y_values.length; pixel_x++) {
     var pixel_y = this._graph_to_screen_y(y_values[pixel_x], y_min, y_max);
     this._ctx.beginPath();
     this._ctx.arc(pixel_x, pixel_y, this._line_width/2, 0, 2*Math.PI, false);
     this._ctx.fill();
+  }
+}
+
+Grapher.prototype.graph = function(f, x_min, x_max) {
+  return this.graph_multiple([f], x_min, x_max);
+}
+
+Grapher.prototype.graph_multiple = function(functions, x_min, x_max) {
+  var y_values = new Array(functions.length), extrema = new Array(functions.length);
+  for(var i = 0; i < functions.length; i++) {
+    y_values[i] = this._evaluate(functions[i], x_min, x_max);
+    extrema[i] = this._find_extrema(y_values[i]);
+  }
+
+  var minima = extrema.map(function(e) { return e.min; });
+  var maxima = extrema.map(function(e) { return e.max; });
+  var y_min = Util.least(minima);
+  var y_max = Util.greatest(maxima);
+
+  this._draw_axes(x_min, x_max, y_min, y_max);
+
+  for(var i = 0; i < y_values.length; i++) {
+    this._draw_graph(y_values[i], y_min, y_max);
   }
 }
 
@@ -418,6 +430,20 @@ Util = {
 
   random_bool: function() {
     return Util.random_int(0, 1) === 1;
+  },
+
+  // Returns least element in seq.
+  least: function(seq) {
+    return seq.reduce(function(previous, current) {
+      return previous < current ? previous : current;
+    });
+  },
+
+  // Returns greatest element in seq.
+  greatest: function(seq) {
+    return seq.reduce(function(previous, current) {
+      return previous > current ? previous : current;
+    });
   }
 }
 
@@ -427,7 +453,8 @@ function init() {
   var grapher = new Grapher('graph');
   var f = function(x) { return Math.pow(x, 2); };
   f = function(x) { return Math.sin(x); };
-  grapher.graph(f, -Math.PI, Math.PI);
+  //grapher.graph(f, -Math.PI, Math.PI);
+  grapher.graph_multiple([f, function(x) { return Math.pow(x, 2); }], 0, Math.PI);
   return;
 
   if(typeof console === 'undefined')
