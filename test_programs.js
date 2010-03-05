@@ -1,13 +1,13 @@
-function Evolved() {
+function TestPrograms() {
   this._fill();
 }
 
-Evolved.prototype.get = function(idx) {
-  return this._evolved[idx];
+TestPrograms.prototype.get = function(idx) {
+  return this._test_programs[idx];
 }
 
-Evolved.prototype._fill = function() {
-  this._evolved = [
+TestPrograms.prototype._fill = function() {
+  this._test_programs = [
     // Extremely simple test program
     {
       program: [110, 0, 1],

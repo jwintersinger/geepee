@@ -6,7 +6,7 @@ function GeePee() {
   //this._test_crossover();
 }
 
-// TODO: remove.
+// TODO: remove test methods.
 GeePee.prototype._test_program = function() {
   var test_inputs = {
     31:   2.52081,
@@ -483,11 +483,12 @@ Util = {
 
 
 
-function test_graph_evolved() {
+function test_graph_comparison() {
   var grapher = new Grapher('graph');
-  var evolved = (new Evolved()).get(0);
+  var test_program = (new TestPrograms()).get(0);
   var gp = new GeePee();
-  grapher.compare_target_to_evolved(gp, -Math.PI, Math.PI, Math.sin, evolved.program, evolved.constants);
+  grapher.compare_target_to_evolved(gp, -Math.PI, Math.PI, Math.sin,
+    test_program.program, test_program.constants);
 }
 
 function test_grapher() {
@@ -506,14 +507,14 @@ function test_evolution() {
 }
 
 function test_evaluation() {
-  var evolved = (new Evolved()).get(0);
+  var test_program = (new TestPrograms()).get(0);
   var gp = new GeePee();
 
   var x_values = [];
   for(var x = -Math.PI; x <= Math.PI; x += 0.1)
     x_values.push(x);
 
-  var y_values = gp.evaluate_indiv(evolved.program, x_values, evolved.constants);
+  var y_values = gp.evaluate_indiv(test_program.program, x_values, test_program.constants);
 }
 
 function benchmark(f, runs) {
@@ -548,9 +549,10 @@ function configure_console() {
 
 function init() {
   configure_console();
+
   //test_evolution();
   //test_grapher();
-  //test_graph_evolved();
+  //test_graph_comparison();
   benchmark(test_evaluation, 3);
 }
 
