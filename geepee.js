@@ -2,7 +2,6 @@ function GeePee() {
   this._set_class_constants();
   this._generate_inputs();
   this._create_random_pop();
-  this.evolve();
 
   //this._test_crossover();
 }
@@ -110,16 +109,18 @@ GeePee.prototype._print_stats = function(generation) {
 
     if(this._fitnesses[i] < best_fitness) {
       best = i;
-      best_size = this._pop[best].length;
       best_fitness = this._fitnesses[best];
     }
     if(this._fitnesses[i] > worst_fitness) {
       worst = i;
-      worst_size = this._pop[worst].length;
       worst_fitness = this._fitnesses[worst];
     }
   }
 
+  var best_size = this._pop[best].length, worst_size = this._pop[worst].length;
+
+  console.log('[' + this._inputs.join(', ') + ']');
+  console.log('[' + this._pop[best].join(', ') + ']');
   console.log(
     'gen='   + generation +
     ' best_fit='   + best_fitness.toFixed(2) +
@@ -127,7 +128,7 @@ GeePee.prototype._print_stats = function(generation) {
     ' worst_fit='  + worst_fitness.toFixed(2) +
     ' worst_size=' + worst_size +
     ' avg_fit='    + (fitness_sum/pop_size).toFixed(2) +
-    ' avg_len='    + (len_sum/pop_size).toFixed(2)
+    ' avg_size='   + (len_sum/pop_size).toFixed(2)
   );
 }
 
@@ -175,6 +176,21 @@ GeePee.prototype._calculate_fitness = function(indiv) {
     fit += Math.abs(result - target);
   }
   return fit;
+}
+
+// Calculates indiv's outputs for set of x_values inputs, using constants.
+GeePee.prototype.evaluate_indiv = function(indiv, x_values, constants) {
+  var y_values = new Array(x_values.length);
+  this._inputs = constants;
+
+  for(var i = 0; i < x_values.length; i++) {
+    this._pc = 0;
+    this._inputs[0] = x_values[i]; // TODO: change to accommodate multiple inputs.
+
+    y_values[i] = this._run_indiv(indiv);
+  }
+
+  return y_values;
 }
 
 GeePee.prototype._is_op = function(primitive) {
@@ -412,13 +428,24 @@ Grapher.prototype.graph_multiple = function(functions, x_min, x_max) {
   this._clear(); // Clear any previously drawn graphs.
   this._draw_axes(x_min, x_max, y_min, y_max);
 
-  for(var i = 0; i < y_values.length; i++) {
+  for(var i = 0; i < y_values.length; i++)
     this._draw_graph(y_values[i], y_min, y_max);
-  }
 }
 
 Grapher.prototype._clear = function() {
   this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
+}
+
+// Graphs both given and indiv to show how they compare to each other.
+Grapher.prototype.compare_target_to_evolved = function(gp, x_min, x_max, target, indiv, constants) {
+  var x_values = new Array(this._canvas.width);
+  for(var pixel_x = 0; pixel_x < this._canvas.width; pixel_x++) {
+    x_values[pixel_x] = this._screen_to_graph_x(pixel_x, x_min, x_max);
+  }
+  var y_values = gp.evaluate_indiv(indiv, x_values, constants);
+
+  this.graph(target, x_min, x_max);
+  this._draw_graph(y_values, -1, 1);
 }
 
 
@@ -454,23 +481,36 @@ Util = {
 
 
 
-function init() {
+function test_graph_evolved() {
   var grapher = new Grapher('graph');
-  var f = function(x) { return Math.pow(x, 2); };
-  f = function(x) { return Math.sin(x); };
-  grapher.graph(f, -Math.PI, Math.PI);
-  grapher.graph_multiple([f, function(x) { return Math.pow(x, 2); }], 0, 2*Math.PI);
-  return;
+  var evolved = (new Evolved()).get(0);
+  var gp = new GeePee();
+  grapher.compare_target_to_evolved(gp, -Math.PI, Math.PI, Math.sin, evolved.program, evolved.constants);
+}
 
+function test_grapher() {
+  grapher.graph_multiple([Math.sin, Math.cos, function(x) { return Math.pow(x, 2); }], 0, 2*Math.PI);
+}
+
+function test_evolution() {
+  var gp = new GeePee();
+  gp.evolve();
+}
+
+function configure_console() {
   if(typeof console === 'undefined')
     console = {
       log: function(msg) {
         postMessage(msg);
       }
     };
+}
 
-  var gp = new GeePee();
-  gp.evolve();
+function init() {
+  configure_console();
+  //test_evolution();
+  //test_grapher();
+  test_graph_evolved();
 }
 
 if(typeof window !== 'undefined') {
@@ -479,7 +519,5 @@ if(typeof window !== 'undefined') {
     init();
   }, false);
 } else {
-  console.log('whoa');
   init();
 }
-
