@@ -1,0 +1,103 @@
+These are notes corresponding to the original tiny_gp.java accompanying A Field Guide to Genetic Programming.
+
+Data file header:
+  varnumber randomnumber minrandom maxrandom fitnesscases
+    varnumber = number of variables in system
+    randomnumber = number of random constants in primitive set
+    fitnesscases = number of fitness cases (that is, lines following header)
+
+setup_fitness():
+  Read input -- reads header, then reads each line of input into targets
+    Can accommodate n input variables, 1 output variable
+      Hence each element of targets has varnumber+1 elements
+
+tiny_gp():
+  Calls setup_fitness
+  Fills x with random doubles -- these are constants used by individuals
+    Note that it fills with not this.randomnumber doubles, but FSET_START-1 doubles
+  Calls create_random_pop()
+
+create_random_pop():
+  Fills pop (with create_random_indiv()) and fitness (with fitness_function)
+
+grow():
+  Creates something or other
+  grow(buffer, 0, MAX_LEN, depth)
+  buffer's length = MAX_LEN
+
+fitness_function():
+  Runs Prog, calculates distance between result and desired value provided in fitness case
+  For j input vars in input data set, overwrites first j elements of x with input value for this fitness case
+
+run():
+  Evaluates individual stored in self.program
+
+print_indiv():
+  If var or constant, print that, return ++buffercounter
+
+  Example run:
+    112 113 37 92 113 17 25
+      print "("
+        print "("
+          print "37" return 3
+        print "/"
+          print "92" return 4
+        print ")"    return 4
+      print "*"     
+        print "("
+          print "17" return 5
+        print "/"
+          print "25" return 6
+        print ")"    return 6
+      print ")"
+      Result: "(( 37 / 92 ) * ( 17 / 25 ))"
+
+grow():
+  Creates new individual
+  If primitive is an operation, then grow() is called twice again to ensure it has two arguments
+
+traverse(n):
+  Returns size of complete tree starting from node n
+    If starting from node 0, this will return full length of tree
+    Given (e = traverse(n)), reading from tree[n..e-1] (inclusive) will yield a proper tree (that is, one in which every operator has two arguments)
+  Why does it work?
+    traverse(n) = { ++n           if tree[n] is value
+                  { traverse(++n) if tree[n] is operator
+    If tree[n] is operator:
+      Returns traverse(++n) so that we will probe progressively deeper until we find a non-operator (value) node
+    If tree[n] is value:
+      Returns ++n, since this must be leaf node, and next node (a sibling) will also be a leaf node (value) that marks end of complete subtree
+
+evolve():
+  Prints parameters for run
+  Runs each generation
+    Prints stats for that generation
+    For each individual in entire population:
+      Creates a new individual by crossover (two parents) or mutation (one parent)
+        Note that individuals created by either method do not replace method -- parent(s) remain, new individuals copied
+        Each parent is chosen by calling tournament()
+      negative_tournament() called to select single individual, who is overwritten by new individual
+
+tournament():
+  Tests two random individuals, returning the index of the better of the two
+
+negative_tournament():
+  Tests two random individuals, returning the index of the worst of the two
+
+crossover():
+  Must ensure complete branch taken -- can't simply take from random point to end of individual
+  Effectively, single node from parent1 is replaced by a subtree from parent2
+  lenoff = length of offspring
+  Three calls to System.arraycopy:
+    First: copies from beginning of parent1 up to replaced node
+    Second: copies subtree from parent2
+    Third: copies everything in parent1 after replaced node
+
+mutation():
+  Picks random node in parent
+    If operator, replaces with another operator
+    If value, replaces with another value
+
+Misc:
+  Given values starting at 110 for ops, then system permits up to 110 input variables + randoms
+    All first values in buffer are variables; following are random
