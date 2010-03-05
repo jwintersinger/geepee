@@ -437,6 +437,8 @@ Grapher.prototype._clear = function() {
 }
 
 // Graphs both given and indiv to show how they compare to each other.
+// TODO: decouple from GeePee -- remove this method, and have client code call graph_multiple()
+// instead.
 Grapher.prototype.compare_target_to_evolved = function(gp, x_min, x_max, target, indiv, constants) {
   var x_values = new Array(this._canvas.width);
   for(var pixel_x = 0; pixel_x < this._canvas.width; pixel_x++) {
@@ -489,12 +491,50 @@ function test_graph_evolved() {
 }
 
 function test_grapher() {
-  grapher.graph_multiple([Math.sin, Math.cos, function(x) { return Math.pow(x, 2); }], 0, 2*Math.PI);
+  var grapher = new Grapher('graph');
+  var functions = [
+    Math.sin,
+    Math.cos,
+    function(x) { return Math.pow(x, 2); }
+  ];
+  grapher.graph_multiple(functions, 0, 2*Math.PI);
 }
 
 function test_evolution() {
   var gp = new GeePee();
   gp.evolve();
+}
+
+function test_evaluation() {
+  var evolved = (new Evolved()).get(0);
+  var gp = new GeePee();
+
+  var x_values = [];
+  for(var x = -Math.PI; x <= Math.PI; x += 0.1)
+    x_values.push(x);
+
+  var y_values = gp.evaluate_indiv(evolved.program, x_values, evolved.constants);
+}
+
+function benchmark(f, runs) {
+  var run_times = new Array(runs);
+
+  for(var i = 0; i < run_times.length; i++) {
+    var start_time = Date.now();
+    f();
+    var end_time = Date.now();
+    var elapsed = end_time - start_time;
+    run_times[i] = elapsed;
+    console.log('Completed run ' + (i + 1) + ' in ' + elapsed + ' ms');
+
+  }
+
+  var total_run_time = 0;
+  for(var i = 0; i < run_times.length; i++) {
+    console.log('Run ' + (i + 1) + ': ' + run_times[i] + ' ms');
+    total_run_time += run_times[i];
+  }
+  console.log('Mean run time: ' + total_run_time/runs + ' ms');
 }
 
 function configure_console() {
@@ -510,7 +550,8 @@ function init() {
   configure_console();
   //test_evolution();
   //test_grapher();
-  test_graph_evolved();
+  //test_graph_evolved();
+  benchmark(test_evaluation, 3);
 }
 
 if(typeof window !== 'undefined') {
