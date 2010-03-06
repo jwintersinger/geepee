@@ -1,14 +1,17 @@
-function GeePee(inputs) {
-  this._set_class_constants();
+function GeePee(constants) {
+  this._set_run_parameters();
+
   // Allow inputs to be set to allow for test programs to run with same constants that were used
   // during their evolution.
-  if(typeof inputs === 'undefined')
-    this._generate_inputs();
-  else
-    this._inputs = inputs;
-  this._create_random_pop();
+  if(typeof constants === 'undefined')
+    this._generate_constants();
+  else {
+    this._inputs = constants;
+    for(var i = 0; i < this._NUM_VARIABLES; i++)
+      this._inputs.unshift(0); // Add an element for each input variable.
+  }
 
-  //this._test_crossover();
+  this._create_random_pop();
 }
 
 // TODO: remove test methods.
@@ -39,7 +42,7 @@ GeePee.prototype._test_mutate = function() {
     console.log(m[i]);
 }
 
-GeePee.prototype._set_class_constants = function() {
+GeePee.prototype._set_run_parameters = function() {
   this._OPS = {
     ADD: 110,
     SUB: 111,
@@ -81,7 +84,7 @@ GeePee.prototype._set_class_constants = function() {
     throw 'Number of constants and variables exceeds index of first instruction.'
 }
 
-GeePee.prototype._generate_inputs = function() {
+GeePee.prototype._generate_constants = function() {
   this._inputs = new Array(this._INPUTS_LEN);
 
   // Fill this._inputs with random constants, leaving enough elements at beginning for inputs from
