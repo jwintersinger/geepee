@@ -14,34 +14,6 @@ function GeePee(constants) {
   this._create_random_pop();
 }
 
-// TODO: remove test methods.
-GeePee.prototype._test_program = function() {
-  var test_inputs = {
-    31:   2.52081,
-    100: -3.52315,
-    69:   4.88815,
-    76:   -0.0502623,
-  };
-  for(var i in test_inputs)
-    this._inputs[i] = test_inputs[i];
-  console.log(this._calculate_fitness( [111, 31, 110, 112, 100, 69, 76] ));
-}
-
-GeePee.prototype._test_crossover = function() {
-  var p1 = [112, 111, 31, 47, 110, 39, 52], p2 = [111, 31, 110, 112, 100, 69, 76];
-  p1 =  [112, 111, 31, 47, 110, 39, 111, 31, 110, 112, 100, 69, 76];
-  p2 =  [112, 111, 31, 47, 110, 39, 111, 31, 110, 112, 100, 69, 76];
-  var off = this._crossover(p1, p2);
-  console.log(off);
-}
-
-GeePee.prototype._test_mutate = function() {
-  var p = [112, 111, 31, 47, 110, 39, 52];
-  var m = this._mutate(p);
-  for(var i = 0; i < m.length; i++)
-    console.log(m[i]);
-}
-
 GeePee.prototype._set_run_parameters = function() {
   this._OPS = {
     ADD: 110,
