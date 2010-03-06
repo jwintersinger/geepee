@@ -22,14 +22,14 @@ function test_evolution() {
 }
 
 function test_evaluation() {
-  var test_program = (new TestPrograms()).get(0);
-  var gp = new GeePee();
+  var test_program = (new TestPrograms()).get(2);
+  var gp = new GeePee(test_program.constants);
 
   var x_values = [];
   for(var x = -Math.PI; x <= Math.PI; x += 0.1)
     x_values.push(x);
 
-  var y_values = gp.evaluate_indiv(test_program.program, x_values, test_program.constants);
+  var y_values = gp.evaluate_indiv(test_program.program, x_values);
 }
 
 function benchmark(f, runs) {
@@ -42,7 +42,6 @@ function benchmark(f, runs) {
     var elapsed = end_time - start_time;
     run_times[i] = elapsed;
     console.log('Completed run ' + (i + 1) + ' in ' + elapsed + ' ms');
-
   }
 
   var total_run_time = 0;
@@ -65,10 +64,11 @@ function configure_console() {
 function init() {
   configure_console();
 
-  //test_evolution();
+
+  test_evolution();
   //test_grapher();
   //test_graph_comparison();
-  benchmark(test_evaluation, 3);
+  //benchmark(test_evaluation, 5);
 }
 
 if(typeof window !== 'undefined') {

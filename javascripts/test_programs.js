@@ -10,8 +10,9 @@ TestPrograms.prototype._fill = function() {
   this._test_programs = [
     // Extremely simple test program
     {
-      program: [110, 0, 1],
-      constants: [6.2, 1]
+      //program: [110, 0, 1],
+      program: [110, 112, 0, 1, 2],
+      constants: [6.2, 1, 3]
     },
 
     // fitness=2.75

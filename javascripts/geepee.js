@@ -1,6 +1,11 @@
-function GeePee() {
+function GeePee(inputs) {
   this._set_class_constants();
-  this._generate_inputs();
+  // Allow inputs to be set to allow for test programs to run with same constants that were used
+  // during their evolution.
+  if(typeof inputs === 'undefined')
+    this._generate_inputs();
+  else
+    this._inputs = inputs;
   this._create_random_pop();
 
   //this._test_crossover();
@@ -87,13 +92,11 @@ GeePee.prototype._generate_inputs = function() {
 }
 
 GeePee.prototype._create_random_pop = function() {
-  this._pop       = new Array(this._POP_SIZE);
-  this._fitnesses = new Array(this._POP_SIZE);
+  this._pop          = new Array(this._POP_SIZE);
+  this._fitnesses    = new Array(this._POP_SIZE);
 
-  for(var i = 0; i < this._pop.length; i++) {
-    this._pop[i]       = this._create_random_indiv();
-    this._fitnesses[i] = this._calculate_fitness(this._pop[i]);
-  }
+  for(var i = 0; i < this._pop.length; i++)
+    this._insert_into_pop(this._create_random_indiv(), i);
 }
 
 GeePee.prototype._print_stats = function(generation) {
@@ -119,8 +122,8 @@ GeePee.prototype._print_stats = function(generation) {
 
   var best_size = this._pop[best].length, worst_size = this._pop[worst].length;
 
-  console.log('[' + this._inputs.join(', ') + ']');
-  console.log('[' + this._pop[best].join(', ') + ']');
+  //console.log('[' + this._inputs.join(', ') + ']');
+  //console.log('[' + this._pop[best].join(', ') + ']');
   console.log(
     'gen='   + generation +
     ' best_fit='   + best_fitness.toFixed(2) +
@@ -179,9 +182,8 @@ GeePee.prototype._calculate_fitness = function(indiv) {
 }
 
 // Calculates indiv's outputs for set of x_values inputs, using constants.
-GeePee.prototype.evaluate_indiv = function(indiv, x_values, constants) {
+GeePee.prototype.evaluate_indiv = function(indiv, x_values) {
   var y_values = new Array(x_values.length);
-  this._inputs = constants;
 
   for(var i = 0; i < x_values.length; i++) {
     this._pc = 0;
@@ -306,15 +308,17 @@ GeePee.prototype._evolve_new_indiv = function() {
   }
 }
 
+GeePee.prototype._insert_into_pop = function(indiv, idx) {
+  this._fitnesses[idx] = this._calculate_fitness(indiv);
+  this._pop[idx]       = indiv;
+}
+
 GeePee.prototype.evolve = function() {
   for(var gen = 1; gen <= this._GENERATIONS; gen++) {
     for(var indiv = 0; indiv < this._POP_SIZE; indiv++) {
       var new_indiv = this._evolve_new_indiv();
-      var new_fit = this._calculate_fitness(new_indiv);
-
       var out_of_the_pool = this._negative_tournament();
-      this._pop[out_of_the_pool] = new_indiv;
-      this._fitnesses[out_of_the_pool] = new_fit;
+      this._insert_into_pop(new_indiv, out_of_the_pool);
     }
     this._print_stats(gen);
   }
