@@ -10,7 +10,7 @@ window.addEventListener('load', function() {
         var evaluator = new GeePee();
         evaluator.set_constants(data.constants);
         var f = function(x) { return evaluator.evaluate_indiv(data.indiv, x); };
-        grapher.graph_multiple([f, Math.sin], 0, 2*Math.PI);
+        grapher.graph_multiple([f, Math.sin], 0, 2*Math.PI, ['rgb(0,255,0)', 'rgb(0,0,255)']);
       },
 
       stats: function(data) {

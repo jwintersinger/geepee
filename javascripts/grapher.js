@@ -76,20 +76,23 @@ Grapher.prototype._find_extrema = function(points) {
 }
 
 
-Grapher.prototype._draw_graph = function(y_values, y_min, y_max) {
+Grapher.prototype._draw_graph = function(y_values, y_min, y_max, colour) {
+  this._ctx.save();
+  this._ctx.fillStyle = colour;
   for(var pixel_x = 0; pixel_x < y_values.length; pixel_x++) {
     var pixel_y = this._graph_to_screen_y(y_values[pixel_x], y_min, y_max);
     this._ctx.beginPath();
     this._ctx.arc(pixel_x, pixel_y, this._line_width/2, 0, 2*Math.PI, false);
     this._ctx.fill();
   }
+  this._ctx.restore();
 }
 
 Grapher.prototype.graph = function(f, x_min, x_max) {
   return this.graph_multiple([f], x_min, x_max);
 }
 
-Grapher.prototype.graph_multiple = function(functions, x_min, x_max) {
+Grapher.prototype.graph_multiple = function(functions, x_min, x_max, colours) {
   var y_values = new Array(functions.length), extrema = new Array(functions.length);
   for(var i = 0; i < functions.length; i++) {
     y_values[i] = this._evaluate(functions[i], x_min, x_max);
@@ -105,7 +108,7 @@ Grapher.prototype.graph_multiple = function(functions, x_min, x_max) {
   this._draw_axes(x_min, x_max, y_min, y_max);
 
   for(var i = 0; i < y_values.length; i++)
-    this._draw_graph(y_values[i], y_min, y_max);
+    this._draw_graph(y_values[i], y_min, y_max, colours[i]);
 }
 
 Grapher.prototype._clear = function() {
