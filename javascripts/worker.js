@@ -6,11 +6,15 @@ window.addEventListener('load', function() {
   worker.onmessage = function(event) {
     var handlers = {
       best_indiv: function(data) {
+        // Graph target and evolved functions.
         var grapher = new Grapher('graph');
         var evaluator = new GeePee();
         evaluator.set_constants(data.constants);
         var f = function(x) { return evaluator.evaluate_indiv(data.indiv, x); };
         grapher.graph_multiple([f, Math.sin], 0, 2*Math.PI, ['rgb(0,255,0)', 'rgb(0,0,255)']);
+
+        // Print human-readable representation of evolved function.
+        document.getElementById('best_indiv').innerHTML = evaluator.generate_human_readable(data.indiv);
       },
 
       stats: function(data) {
@@ -19,8 +23,12 @@ window.addEventListener('load', function() {
       }
     };
 
-    var type = event.data.type;
-    delete event.data.type;
-    handlers[type](event.data);
+    var data = event.data;
+    if(data.type !== undefined && handlers[data.type] !== undefined) {
+      var type = data.type;
+      delete data.type;
+      handlers[type](data);
+    } else
+      console.log(data);
   };
 }, false);

@@ -201,6 +201,33 @@ GeePee.prototype._run_indiv = function(indiv) {
   }
 }
 
+// Generates human-readable representation of indiv.
+GeePee.prototype.generate_human_readable = function(indiv) {
+  this._pc = 0;
+  return this._generate_human_readable(indiv);
+}
+
+GeePee.prototype._generate_human_readable = function(indiv) {
+  var primitive = indiv[this._pc++];
+
+  if(this._is_input(primitive)) {
+    if(primitive < this._NUM_VARIABLES)
+      return 'x';
+    return this._inputs[primitive];
+  }
+
+  var a = this._generate_human_readable(indiv), b = this._generate_human_readable(indiv);
+  switch(primitive) {
+    case this._OPS.ADD: var op = '+'; break;
+    case this._OPS.SUB: var op = '-'; break;
+    case this._OPS.MUL: var op = '*'; break;
+    case this._OPS.DIV: var op = '/'; break;
+    default:
+      throw "Unknown primitive: " + primitive;
+  }
+  return '(' + a + ' ' + op + ' ' + b + ')';
+}
+
 GeePee.prototype._positive_tournament = function() {
   var best, best_fitness = this._WORST_POSSIBLE_FITNESS;
 

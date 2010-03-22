@@ -31,26 +31,41 @@
       <div id="supplementary">
         <div id="explanation">
           <h2>What is it?</h2>
-          <p>Gee Pee is a genetic programming system that attempts to approximate a solution to
-          y=sin(x) over the interval [0, 2π].</p>
+          <p>Gee Pee is a genetic programming system that attempts to evolve an expression
+          equivalent to y=sin(x) over the interval [0, 2π], using only the four arithmetical
+          operations (addition, subtraction, multiplication, and division).</p>
         </div>
 
-        <div id="stats" style="margin-bottom: 50px">
+        <div id="stats">
           <h2>Statistics</h2>
+
           <dl>
-            <dt>Generation</dt><dd id="gen"></dd>
-            <dt>Best's fitness</dt><dd id="best_fit"></dd>
-            <dt>Best's size</dt><dd id="best_size"></dd>
-            <dt>Worst's fitness</dt><dd id="worst_fit"></dd>
-            <dt>Worst's size</dt><dd id="worst_size"></dd>
-            <dt>Average's fitness</dt><dd id="avg_fit"></dd>
-            <dt>Average's size</dt><dd id="avg_size"></dd>
-            <dt>Time</dt><dd id="time"></dd>
+            <dt>Generation</dt><dd id="gen">N/A</dd>
+            <dt>Best's fitness</dt><dd id="best_fit">N/A</dd>
+            <dt>Best's size</dt><dd id="best_size">N/A</dd>
+            <dt>Worst's fitness</dt><dd id="worst_fit">N/A</dd>
+            <dt>Worst's size</dt><dd id="worst_size">N/A</dd>
+            <dt>Average's fitness</dt><dd id="avg_fit">N/A</dd>
+            <dt>Average's size</dt><dd id="avg_size">N/A</dd>
+            <dt>Time</dt><dd id="time">N/A</dd>
           </dl>
         </div>
 
-        <div id="best_expression">
-          <h2>Best expression</h2>
+        <div id="stats_explanation">
+          <h2>Explanation of statistics</h2>
+          <dl>
+            <dt>Fitness</dt><dd>the sum of the differences between the evolved and target functions. Lower
+            scores indicate greater fitness.</dd>
+            <dt>Size</dt><dd>the number of operators, variables, and constants in an individual. For
+            example, the individual <code>((3 + 5) * (x / 8))</code> has a size of 7.</dd>
+            <dt>Time</dt><dd>the time taken to run the generation&mdash;that is, to generate all
+            individuals within the generation and evaluate each for fitness.</dd>
+          </dl>
+        </div>
+
+        <div>
+          <h2>Best individual</h2>
+          <code id="best_indiv"></code>
         </div>
 
       </div>
