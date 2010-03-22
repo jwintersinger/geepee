@@ -106,7 +106,8 @@ GeePee.prototype._report_stats = function(generation) {
     worst_fit:  worst_fitness.toFixed(2),
     worst_size: worst_size,
     avg_fit:    (fitness_sum/pop_size).toFixed(2),
-    avg_size:   (len_sum/pop_size).toFixed(2)
+    avg_size:   (len_sum/pop_size).toFixed(2),
+    time:       ((this._gen_end_time - this._gen_start_time)/1000).toFixed(2) + ' s'
   });
 }
 
@@ -282,11 +283,14 @@ GeePee.prototype.evolve = function() {
   this._create_random_pop();
 
   for(var gen = 1; gen <= this._GENERATIONS; gen++) {
+    this._gen_start_time = Date.now();
     for(var indiv = 0; indiv < this._POP_SIZE; indiv++) {
       var new_indiv = this._evolve_new_indiv();
       var out_of_the_pool = this._negative_tournament();
       this._insert_into_pop(new_indiv, out_of_the_pool);
     }
+    this._gen_end_time = Date.now();
+
     this._report_stats(gen);
   }
 }
