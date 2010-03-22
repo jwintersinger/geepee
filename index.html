@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Gee Pee</title>
+
     <!-- util.js, grapher.js, and geepee.js needed to draw graphs. -->
     <script type="text/javascript" src="javascripts/util.js"></script>
     <script type="text/javascript" src="javascripts/grapher.js"></script>
@@ -15,25 +17,43 @@
     <script type="text/javascript" src="javascripts/test_programs.js"></script>
     <script type="text/javascript" src="javascripts/tests.js"></script>
     <script type="text/javascript" src="javascripts/init.js"></script>-->
+
+    <link rel="stylesheet" href="style.css" />
   </head>
 
   <body>
-    <input id="go" type="button" value="Evolve" />
-    <canvas id="graph" width="600" height="500"></canvas>
+    <h1>Gee Pee</h1>
 
-    <div id="stats" style="float: right">
-      <h1>Stats</h1>
-      <dl>
-        <dt>Generation</dt><dd id="gen"></dd>
-        <dt>Best's fitness</dt><dd id="best_fit"></dd>
-        <dt>Best's size</dt><dd id="best_size"></dd>
-        <dt>Worst's fitness</dt><dd id="worst_fit"></dd>
-        <dt>Worst's size</dt><dd id="worst_size"></dd>
-        <dt>Average's fitness</dt><dd id="avg_fit"></dd>
-        <dt>Average's size</dt><dd id="avg_size"></dd>
-        <dt>Time</dt><dd id="time"></dd>
-      </dl>
+    <!--<input id="go" type="button" value="Evolve" />-->
+    <div id="container">
+      <canvas id="graph" width="600" height="500"></canvas>
+
+      <div id="supplementary">
+        <div id="explanation">
+          <h2>What is it?</h2>
+          <p>Gee Pee is a genetic programming system that attempts to approximate a solution to
+          y=sin(x) over the interval [0, 2π].</p>
+        </div>
+
+        <div id="stats" style="margin-bottom: 50px">
+          <h2>Statistics</h2>
+          <dl>
+            <dt>Generation</dt><dd id="gen"></dd>
+            <dt>Best's fitness</dt><dd id="best_fit"></dd>
+            <dt>Best's size</dt><dd id="best_size"></dd>
+            <dt>Worst's fitness</dt><dd id="worst_fit"></dd>
+            <dt>Worst's size</dt><dd id="worst_size"></dd>
+            <dt>Average's fitness</dt><dd id="avg_fit"></dd>
+            <dt>Average's size</dt><dd id="avg_size"></dd>
+            <dt>Time</dt><dd id="time"></dd>
+          </dl>
+        </div>
+
+        <div id="best_expression">
+          <h2>Best expression</h2>
+        </div>
+
+      </div>
     </div>
-
   </body>
 </html>

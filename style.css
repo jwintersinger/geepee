@@ -1,0 +1,52 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-size: 0.8em;
+}
+
+h1 {
+  text-align: center;
+  font-size: 3em;
+}
+
+#graph {
+  float: left;
+}
+
+#supplementary {
+  width: 300px;
+  margin-left: 1em;
+  float: left;
+}
+
+#supplementary > div {
+  padding-bottom: 1em;
+  clear: both;
+}
+
+#container {
+  margin-left: auto;
+  margin-right: auto;
+  width: 950px;
+}
+
+dl {
+  width: 100%;
+}
+
+dt, dd {
+  float: left;
+  width: 48%;
+}
+
+dt {
+  padding-right: 0.33em;
+  clear: left;
+}
+
+dt:after {
+  content: ':';
+}
