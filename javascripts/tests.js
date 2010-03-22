@@ -20,10 +20,13 @@ function benchmark(f, runs) {
 
 function test_graph_comparison() {
   var grapher = new Grapher('graph');
-  var test_program = (new TestPrograms()).get(0);
+  var test_program = (new TestPrograms()).get(1);
+
   var gp = new GeePee();
-  grapher.compare_target_to_evolved(gp, -Math.PI, Math.PI, Math.sin,
-    test_program.program, test_program.constants);
+  gp.set_constants(test_program.constants);
+  var f = function(x) { return gp.evaluate_indiv(test_program.program, x); };
+
+  grapher.graph_multiple([f, Math.sin], 0, 2*Math.PI);
 }
 
 function test_grapher() {

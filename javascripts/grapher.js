@@ -111,17 +111,3 @@ Grapher.prototype.graph_multiple = function(functions, x_min, x_max) {
 Grapher.prototype._clear = function() {
   this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
 }
-
-// Graphs both given and indiv to show how they compare to each other.
-// TODO: decouple from GeePee -- remove this method, and have client code call graph_multiple()
-// instead.
-Grapher.prototype.compare_target_to_evolved = function(gp, x_min, x_max, target, indiv, constants) {
-  var x_values = new Array(this._canvas.width);
-  for(var pixel_x = 0; pixel_x < this._canvas.width; pixel_x++) {
-    x_values[pixel_x] = this._screen_to_graph_x(pixel_x, x_min, x_max);
-  }
-  var y_values = gp.evaluate_indiv(indiv, x_values, constants);
-
-  this.graph(target, x_min, x_max);
-  this._draw_graph(y_values, -1, 1);
-}

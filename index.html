@@ -2,9 +2,10 @@
 <html>
   <head>
     <title>Gee Pee</title>
-    <!-- util.js and grapher.js needed to draw graphs. -->
+    <!-- util.js, grapher.js, and geepee.js needed to draw graphs. -->
     <script type="text/javascript" src="javascripts/util.js"></script>
     <script type="text/javascript" src="javascripts/grapher.js"></script>
+    <script type="text/javascript" src="javascripts/geepee.js"></script>
 
     <!-- Needed only if using Worker functionality. -->
     <script type="text/javascript" src="javascripts/worker.js"></script>
@@ -19,5 +20,14 @@
   <body>
     <input id="go" type="button" value="Evolve" />
     <canvas id="graph" width="600" height="500"></canvas>
+    <dl id="stats" style="float: right">
+      <dt>Generation</dt><dd id="gen"></dd>
+      <dt>Best fitness</dt><dd id="best_fit"></dd>
+      <dt>Best size</dt><dd id="best_size"></dd>
+      <dt>Worst fitness</dt><dd id="worst_fit"></dd>
+      <dt>Worst size</dt><dd id="worst_size"></dd>
+      <dt>Average fitness</dt><dd id="avg_fit"></dd>
+      <dt>Average size</dt><dd id="avg_size"></dd>
+    </dl>
   </body>
 </html>

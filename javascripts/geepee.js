@@ -1,17 +1,13 @@
 function GeePee(constants) {
   this._set_run_parameters();
+}
 
-  // Allow inputs to be set to allow for test programs to run with same constants that were used
-  // during their evolution.
-  if(typeof constants === 'undefined')
-    this._generate_constants();
-  else {
-    this._inputs = constants;
-    for(var i = 0; i < this._NUM_VARIABLES; i++)
-      this._inputs.unshift(0); // Add an element for each input variable.
-  }
-
-  this._create_random_pop();
+// Allow inputs to be set to allow for test programs to run with same constants that were used
+// during their evolution.
+GeePee.prototype.set_constants = function(constants) {
+  this._inputs = constants;
+  for(var i = 0; i < this._NUM_VARIABLES; i++)
+    this._inputs.unshift(0); // Add an element for each input variable.
 }
 
 GeePee.prototype._set_run_parameters = function() {
@@ -74,7 +70,7 @@ GeePee.prototype._create_random_pop = function() {
     this._insert_into_pop(this._create_random_indiv(), i);
 }
 
-GeePee.prototype._print_stats = function(generation) {
+GeePee.prototype._report_stats = function(generation) {
   var len_sum     = 0; // Summed lengths of all individuals
   var fitness_sum = 0;
   var best, best_size, best_fitness = this._WORST_POSSIBLE_FITNESS;
@@ -97,17 +93,21 @@ GeePee.prototype._print_stats = function(generation) {
 
   var best_size = this._pop[best].length, worst_size = this._pop[worst].length;
 
-  //console.log('[' + this._inputs.join(', ') + ']');
-  //console.log('[' + this._pop[best].join(', ') + ']');
-  console.log(
-    'gen='   + generation +
-    ' best_fit='   + best_fitness.toFixed(2) +
-    ' best_size='  + best_size +
-    ' worst_fit='  + worst_fitness.toFixed(2) +
-    ' worst_size=' + worst_size +
-    ' avg_fit='    + (fitness_sum/pop_size).toFixed(2) +
-    ' avg_size='   + (len_sum/pop_size).toFixed(2)
-  );
+  postMessage({
+    type:      'best_indiv',
+    indiv:     this._pop[best],
+    constants: this._inputs.slice(1) // Omit x-value.
+  });
+  postMessage({
+    type:       'stats',
+    gen:        generation,
+    best_fit:   best_fitness.toFixed(2),
+    best_size:  best_size,
+    worst_fit:  worst_fitness.toFixed(2),
+    worst_size: worst_size,
+    avg_fit:    (fitness_sum/pop_size).toFixed(2),
+    avg_size:   (len_sum/pop_size).toFixed(2)
+  });
 }
 
 GeePee.prototype._create_random_indiv = function() {
@@ -147,27 +147,17 @@ GeePee.prototype._grow_indiv = function(indiv, depth) {
 GeePee.prototype._calculate_fitness = function(indiv) {
   var fit = 0;
   for(var x = this._TARGET_INPUT_START; x <= this._TARGET_INPUT_END; x += this._TARGET_INPUT_STEP) {
-    this._pc = 0;
-    this._inputs[0] = x; // TODO: change to accommodate multiple inputs.
+    var result = this.evaluate_indiv(indiv, x);
     var target = this._TARGET_FUNCTION(x);
-    var result = this._run_indiv(indiv);
     fit += Math.abs(result - target);
   }
   return fit;
 }
 
-// Calculates indiv's outputs for set of x_values inputs, using constants.
-GeePee.prototype.evaluate_indiv = function(indiv, x_values) {
-  var y_values = new Array(x_values.length);
-
-  for(var i = 0; i < x_values.length; i++) {
-    this._pc = 0;
-    this._inputs[0] = x_values[i]; // TODO: change to accommodate multiple inputs.
-
-    y_values[i] = this._run_indiv(indiv);
-  }
-
-  return y_values;
+GeePee.prototype.evaluate_indiv = function(indiv, x) {
+  this._pc = 0;
+  this._inputs[0] = x; // TODO: change to accommodate multiple inputs.
+  return this._run_indiv(indiv);
 }
 
 GeePee.prototype._is_op = function(primitive) {
@@ -258,7 +248,6 @@ GeePee.prototype._crossover = function(parent1, parent2) {
   var b = parent2.slice(xo2_start, xo2_end); // From start of parent2's replacement node to its end.
   var c = parent1.slice(xo1_end);            // From just after replaced node to end of parent1.
   var ret = a.concat(b, c);
-  //console.log([parent1.length, parent2.length, ret.length]);
   return ret;
 }
 
@@ -289,12 +278,15 @@ GeePee.prototype._insert_into_pop = function(indiv, idx) {
 }
 
 GeePee.prototype.evolve = function() {
+  this._generate_constants();
+  this._create_random_pop();
+
   for(var gen = 1; gen <= this._GENERATIONS; gen++) {
     for(var indiv = 0; indiv < this._POP_SIZE; indiv++) {
       var new_indiv = this._evolve_new_indiv();
       var out_of_the_pool = this._negative_tournament();
       this._insert_into_pop(new_indiv, out_of_the_pool);
     }
-    this._print_stats(gen);
+    this._report_stats(gen);
   }
 }

@@ -23,6 +23,7 @@ if(typeof window === 'undefined') {
   init_worker();
 } else {
   window.addEventListener('load', function() {
-    document.getElementById('go').addEventListener('click', init, false);
+    document.getElementById('go').addEventListener('click', init_nonworker, false);
+    init_nonworker();
   }, false);
 }
