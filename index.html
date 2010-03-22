@@ -2,6 +2,7 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="author" content="Jeff Wintersinger" />
     <title>Gee Pee</title>
 
     <!-- util.js, grapher.js, and geepee.js needed to draw graphs. -->
@@ -32,9 +33,10 @@
       <div id="supplementary">
         <div id="explanation">
           <h2>What is it?</h2>
-          <p>Gee Pee is a genetic programming system that attempts to evolve an expression
-          equivalent to y=sin(x) over the interval [0, 2π], using only the four arithmetical
-          operations (addition, subtraction, multiplication, and division).</p>
+          <p>Gee Pee is a genetic programming system that attempts to evolve an expression closely
+          approximating y=sin(x) over the interval [0, 2π], using only the four arithmetical
+          operations (addition, subtraction, multiplication, and division). It was inspired by <a
+            href="http://cswww.essex.ac.uk/staff/rpoli/TinyGP/">TinyGP</a>.</p>
         </div>
 
         <div id="stats">
@@ -53,10 +55,12 @@
         </div>
 
         <div id="stats_explanation">
-          <h2>Explanation of statistics</h2>
+          <h2>Explanation of terms</h2>
           <dl>
-            <dt>Fitness</dt><dd>the sum of the differences between the evolved and target functions. Lower
-            scores indicate greater fitness.</dd>
+            <dt>Fitness</dt><dd>the sum of the differences between the evolved and target
+            expressions. Lower scores indicate greater fitness.</dd>
+            <dt>Individual</dt><dd>an evolved mathematical expression, composed of combinations of the four
+            arithmetical operators, the input variable x, and constant values.</dt>
             <dt>Size</dt><dd>the number of operators, variables, and constants in an individual. For
             example, the individual <code>((3 + 5) * (x / 8))</code> has a size of 7.</dd>
             <dt>Time</dt><dd>the time taken to run the generation&mdash;that is, to generate all
@@ -66,7 +70,7 @@
 
         <div>
           <h2>Best individual</h2>
-          <code id="best_indiv"></code>
+          <code id="best_indiv">N/A</code>
         </div>
 
       </div>

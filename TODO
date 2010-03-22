@@ -1,2 +1,4 @@
 Investigate all code after mutate/crossover -- both of those verified to be all right
 Browser detection, and notification if bad browser used.
+Provide means for user to set run's parameters
+Provide notification when run is complete (all generations finished)
