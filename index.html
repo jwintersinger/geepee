@@ -23,6 +23,16 @@
   </head>
 
   <body>
+    <div id="unsupported" style="display: none">
+      <div id="unsupported_background"></div>
+      <p id="unsupported_msg">
+        Your browser lacks support for <span id="unsupported_features"></span>. Please upgrade to a
+        supported browser, such as the latest version of <a
+        href="http://www.mozilla.com/firefox/">Firefox</a> or <a
+        href="http://www.google.com/chrome/">Google Chrome</a>.
+      </p>
+    </div>
+
     <h1>Gee Pee</h1>
 
     <!--<input id="go" type="button" value="Evolve" />-->
@@ -37,6 +47,18 @@
           approximating y=sin(x) over the interval [0, 2π], using only the four arithmetical
           operations (addition, subtraction, multiplication, and division). It was inspired by <a
             href="http://cswww.essex.ac.uk/staff/rpoli/TinyGP/">TinyGP</a>.</p>
+        </div>
+
+        <div id="browser_support">
+          <h2>Browser support</h2>
+          <ul>
+            <li>Firefox 3.6 and later: Gee Pee works perfectly.</li>
+            <li>Google Chrome 4.1 and later: Gee Pee works sporadically. If it initializes
+            correctly, it works well; if no graph appears after a few seconds, please close the
+            browser tab and re-open Gee Pee in a new one. (Refreshing the page does not work.)</li>
+            <li>Internet Explorer 8: Gee Pee does not work.</li>
+            <li>Opera 10.5: Gee Pee does not work.</li>
+          </ul>
         </div>
 
         <div id="stats">
