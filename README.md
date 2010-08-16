@@ -1,6 +1,9 @@
 Gee Pee
 =======
 
+A genetic programming system.
+-----------------------------
+
 Gee Pee is a ruidimentary genetic programming system that strives to produce a
 mathematical expression approximating the trigonometric function f(x)=sin(x)
 over a given domain, using only the four arithmetical operators.  Written
